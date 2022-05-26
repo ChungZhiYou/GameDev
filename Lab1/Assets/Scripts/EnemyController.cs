@@ -38,4 +38,5 @@ public class EnemyController : MonoBehaviour
             MoveGomba();
         }
     }
+    
 }
