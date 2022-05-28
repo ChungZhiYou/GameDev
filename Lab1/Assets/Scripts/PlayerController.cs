@@ -9,11 +9,16 @@ public class PlayerController : MonoBehaviour
     public float speed;
     private Rigidbody2D marioBody;
     private SpriteRenderer marioSprite;
-    private bool faceRightState = true;
     public Transform enemyLocation;
     public Text scoreText;
     private int score = 0;
     private bool countScoreState = false;
+    public CharacterController2D controller;
+
+    float horizontalMove = 0f;
+    bool jump = false;
+
+    public float runSpeed = 40f;
     // Start is called before the first frame update
     void Start()
     {
@@ -26,16 +31,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // toggle state
-        if (Input.GetKeyDown("a") && faceRightState){
-            faceRightState = false;
-            marioSprite.flipX = true;
-        }
-
-        if (Input.GetKeyDown("d") && !faceRightState){
-            faceRightState = true;
-            marioSprite.flipX = false;
-        }
         if (!onGroundState && countScoreState)
         {
             if (Mathf.Abs(transform.position.x - enemyLocation.position.x) < 0.5f)
@@ -45,28 +40,19 @@ public class PlayerController : MonoBehaviour
                 Debug.Log(score);
             }
         }
+        horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;  // amplify speed by runSpeed
+
+        if (Input.GetButtonDown("Jump")){
+            onGroundState = false;
+            countScoreState = true; //check if Gomba is underneath
+            jump = true;
+        }
     }
-    public float maxSpeed = 10;
-    public float upSpeed = 10;
     // FixedUpdate may be called once per frame. See documentation for details.
     void  FixedUpdate()
     {
-        // dynamic rigidbody
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        if (Mathf.Abs(moveHorizontal) > 0){
-            Vector2 movement = new Vector2(moveHorizontal, 0);
-            if (marioBody.velocity.magnitude < maxSpeed)
-                    marioBody.AddForce(movement * speed);
-        }
-        if (Input.GetKeyUp("a") || Input.GetKeyUp("d")){
-            // stop
-            marioBody.velocity = Vector2.zero;
-        }
-        if (Input.GetKeyDown("space") && onGroundState){
-            marioBody.AddForce(Vector2.up * upSpeed, ForceMode2D.Impulse);
-            onGroundState = false;
-            countScoreState = true; //check if Gomba is underneath
-        }
+        controller.Move(horizontalMove * Time.fixedDeltaTime,false,jump);
+        jump = false;
     }
     private bool onGroundState = true;
 
